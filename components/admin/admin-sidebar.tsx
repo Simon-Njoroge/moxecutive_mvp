@@ -40,6 +40,15 @@ export function AdminSidebar() {
         <div className="fixed inset-0 z-40 lg:hidden bg-black/50" onClick={() => setIsCollapsed(true)} />
       )}
 
+      {/* Mobile open button when sidebar is collapsed */}
+      {isCollapsed && (
+        <div className="lg:hidden fixed top-4 left-4 z-50">
+          <Button variant="ghost" size="icon" onClick={() => setIsCollapsed(false)} aria-label="Open sidebar">
+            <Menu className="h-5 w-5" />
+          </Button>
+        </div>
+      )}
+
       {/* Sidebar */}
       <div
         className={cn(
