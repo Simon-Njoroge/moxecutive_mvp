@@ -1,38 +1,39 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ChevronDown, ChevronUp } from "lucide-react"
 
 export function FaqSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(0)
 
-  const faqs = [
-    {
-      question: "What services does Moxecutive Media offer?",
-      answer:
-        "We offer comprehensive media solutions including film & TV production, graphic design & branding, event management, media buying, training & mentorship, and professional photography.",
-    },
-    {
-      question: "How long does a typical video production take?",
-      answer:
-        "Production timelines vary based on project complexity. Simple projects may take 2-4 weeks, while complex productions can take 6-12 weeks from concept to final delivery.",
-    },
-    {
-      question: "Do you offer package deals for multiple services?",
-      answer:
-        "Yes, we offer customized packages that combine multiple services for better value. Contact us to discuss your specific needs and receive a tailored quote.",
-    },
-    {
-      question: "What is your creative process?",
-      answer:
-        "Our process begins with understanding your vision and goals, followed by concept development, production planning, execution, and final delivery with revisions as needed.",
-    },
-    {
-      question: "Do you work with clients outside Kenya?",
-      answer:
-        "Yes, we work with clients globally. While we're based in Kenya, we can coordinate remote projects and travel for on-location shoots when required.",
-    },
-  ]
+  // Replace static FAQ list with data fetched from the API
+  const [faqs, setFaqs] = useState<Array<{ question: string; answer: string; status?: string; orderPosition?: number }>>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let mounted = true
+    ;(async () => {
+      try {
+        const res = await fetch("/api/faqs")
+        if (!res.ok) return
+        const data = await res.json()
+        if (!mounted) return
+        const items = Array.isArray(data.faqs) ? data.faqs : []
+        // show only active items and sort by orderPosition (ascending)
+        const visible = items
+          .filter((f) => f.status === "active" || f.status === undefined)
+          .sort((a, b) => (Number(a.orderPosition ?? 0) - Number(b.orderPosition ?? 0)))
+        setFaqs(visible)
+      } catch (err) {
+        // ignore for now
+      } finally {
+        if (mounted) setLoading(false)
+      }
+    })()
+    return () => {
+      mounted = false
+    }
+  }, [])
 
   return (
     <section id="faqs" className="py-20 bg-background">
@@ -45,26 +46,32 @@ export function FaqSection() {
         </div>
 
         <div className="space-y-4">
-          {faqs.map((faq, index) => (
-            <div key={index} className="border border-border rounded-lg overflow-hidden">
-              <button
-                className="w-full px-6 py-4 text-left bg-card hover:bg-muted transition-colors duration-200 flex items-center justify-between"
-                onClick={() => setOpenIndex(openIndex === index ? null : index)}
-              >
-                <span className="font-semibold text-foreground">{faq.question}</span>
-                {openIndex === index ? (
-                  <ChevronUp className="h-5 w-5 text-primary" />
-                ) : (
-                  <ChevronDown className="h-5 w-5 text-muted-foreground" />
+          {loading ? (
+            <div className="text-center text-muted-foreground">Loading FAQs…</div>
+          ) : faqs.length === 0 ? (
+            <div className="text-center text-muted-foreground">No FAQs yet.</div>
+          ) : (
+            faqs.map((faq, index) => (
+              <div key={index} className="border border-border rounded-lg overflow-hidden">
+                <button
+                  className="w-full px-6 py-4 text-left bg-card hover:bg-muted transition-colors duration-200 flex items-center justify-between"
+                  onClick={() => setOpenIndex(openIndex === index ? null : index)}
+                >
+                  <span className="font-semibold text-foreground">{faq.question}</span>
+                  {openIndex === index ? (
+                    <ChevronUp className="h-5 w-5 text-primary" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                  )}
+                </button>
+                {openIndex === index && (
+                  <div className="px-6 py-4 bg-background border-t border-border">
+                    <p className="text-muted-foreground leading-relaxed">{faq.answer}</p>
+                  </div>
                 )}
-              </button>
-              {openIndex === index && (
-                <div className="px-6 py-4 bg-background border-t border-border">
-                  <p className="text-muted-foreground leading-relaxed">{faq.answer}</p>
-                </div>
-              )}
-            </div>
-          ))}
+              </div>
+            ))
+          )}
         </div>
       </div>
     </section>
