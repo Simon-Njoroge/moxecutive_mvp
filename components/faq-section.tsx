@@ -21,8 +21,8 @@ export function FaqSection() {
         const items = Array.isArray(data.faqs) ? data.faqs : []
         // show only active items and sort by orderPosition (ascending)
         const visible = items
-          .filter((f) => f.status === "active" || f.status === undefined)
-          .sort((a, b) => (Number(a.orderPosition ?? 0) - Number(b.orderPosition ?? 0)))
+          .filter((f:any) => f.status === "active" || f.status === undefined)
+          .sort((a:any, b:any) => (Number(a.orderPosition ?? 0) - Number(b.orderPosition ?? 0)))
         setFaqs(visible)
       } catch (err) {
         // ignore for now
